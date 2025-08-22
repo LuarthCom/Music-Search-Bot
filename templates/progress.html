@@ -21,7 +21,7 @@
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="fw-bold">Progresso:</span>
-                                <span id="progress-text">0% (0/{{ job.total }})</span>
+                                <span id="progress-text">{{ job.progress }}% ({{ job.current }}/{{ job.total }})</span>
                             </div>
                             <div class="progress" style="height: 25px;">
                                 <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" 
@@ -72,7 +72,7 @@
                         </div>
 
                         <!-- Última Busca -->
-                        <div class="card">
+                        <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="mb-0"><i class="fas fa-music"></i> Última busca:</h5>
                             </div>
@@ -84,30 +84,59 @@
                             </div>
                         </div>
 
-                        <!-- Botão de Cancelar (opcional) -->
-                        <div class="text-center mt-4">
+                        <!-- Área de Conclusão (inicialmente oculta) -->
+                        <div id="completion-area" class="d-none">
+                            <div class="alert alert-success text-center mb-4">
+                                <h4><i class="fas fa-check-circle"></i> Processamento Concluído!</h4>
+                                <p class="mb-0">Suas músicas foram processadas com sucesso. Faça o download dos resultados abaixo:</p>
+                            </div>
+
+                            <!-- Estatísticas Finais -->
+                            <div class="row mb-4">
+                                <div class="col-md-12 text-center">
+                                    <h5>📊 Resultado Final:</h5>
+                                    <div class="alert alert-info">
+                                        <strong id="final-stats-text">Carregando...</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Botões de Download -->
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="d-grid">
+                                        <a id="download-csv-btn" href="#" class="btn btn-success btn-lg">
+                                            <i class="fas fa-file-csv fa-2x"></i><br>
+                                            Baixar CSV
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-grid">
+                                        <a id="download-xlsx-btn" href="#" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-file-excel fa-2x"></i><br>
+                                            Baixar Excel
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-grid">
+                                        <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-lg">
+                                            <i class="fas fa-plus fa-2x"></i><br>
+                                            Nova Busca
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botão de Voltar (sempre visível) -->
+                        <div class="text-center">
                             <a href="{{ url_for('index') }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Voltar ao Início
                             </a>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Conclusão -->
-    <div class="modal fade" id="completedModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-check-circle"></i> Processamento Concluído!
-                    </h5>
-                </div>
-                <div class="modal-body">
-                    <p>Todas as músicas foram processadas com sucesso!</p>
-                    <p>Você será redirecionado para a página de resultados.</p>
                 </div>
             </div>
         </div>
@@ -134,21 +163,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    
     <script>
-        const socket = io();
         const jobId = '{{ job_id }}';
+        let pollingInterval;
+        let isCompleted = false;
 
-        // Conecta ao canal de progresso
-        socket.emit('join_progress', {job_id: jobId});
-
-        // Escuta atualizações de progresso
-        socket.on('progress_update', function(data) {
+        // Função para atualizar a interface
+        function updateProgress(data) {
             // Atualiza barra de progresso
-            document.getElementById('progress-bar').style.width = data.pct + '%';
-            document.getElementById('progress-bar').textContent = data.pct + '%';
+            document.getElementById('progress-bar').style.width = data.progress + '%';
+            document.getElementById('progress-bar').textContent = data.progress + '%';
             document.getElementById('progress-text').textContent = 
-                `${data.pct}% (${data.current}/${data.total})`;
+                `${data.progress}% (${data.current}/${data.total})`;
 
             // Atualiza estatísticas
             document.getElementById('youtube-count').textContent = data.stats.youtube_found;
@@ -157,24 +184,91 @@
             document.getElementById('errors-count').textContent = data.stats.errors;
 
             // Atualiza última busca
-            document.getElementById('last-message').textContent = data.last;
-        });
+            document.getElementById('last-message').textContent = data.last_message;
 
-        // Escuta conclusão do job
-        socket.on('job_completed', function(data) {
-            const modal = new bootstrap.Modal(document.getElementById('completedModal'));
-            modal.show();
-            
-            setTimeout(() => {
-                window.location.href = `/results/${jobId}`;
-            }, 2000);
-        });
+            // Verifica se completou
+            if (data.status === 'completed' && !isCompleted) {
+                isCompleted = true;
+                showCompletionArea(data);
+                clearInterval(pollingInterval);
+            } else if (data.status === 'error') {
+                showError(data.error || 'Erro desconhecido');
+                clearInterval(pollingInterval);
+            }
+        }
 
-        // Escuta erros do job
-        socket.on('job_error', function(data) {
-            document.getElementById('error-message').textContent = data.error;
+        // Função para mostrar área de conclusão
+        function showCompletionArea(data) {
+            const completionArea = document.getElementById('completion-area');
+            completionArea.classList.remove('d-none');
+
+            // Calcula estatísticas finais
+            const found = data.stats.youtube_found + data.stats.fourshared_found;
+            const total = data.stats.total_songs;
+            const successRate = total > 0 ? Math.round((found / total) * 100) : 0;
+
+            // Atualiza texto de estatísticas finais
+            document.getElementById('final-stats-text').textContent = 
+                `${found} de ${total} músicas encontradas (${successRate}% de sucesso)`;
+
+            // Configura botões de download
+            document.getElementById('download-csv-btn').href = 
+                `/download/${jobId}?type=csv`;
+            document.getElementById('download-xlsx-btn').href = 
+                `/download/${jobId}?type=xlsx`;
+
+            // Muda o cabeçalho para sucesso
+            const header = document.querySelector('.card-header');
+            header.className = 'card-header bg-success text-white text-center';
+            header.innerHTML = `
+                <h2><i class="fas fa-check-circle"></i> Processamento Concluído!</h2>
+                <p class="mb-0">Seus resultados estão prontos para download</p>
+            `;
+
+            // Para a animação da barra de progresso
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.classList.remove('progress-bar-animated');
+        }
+
+        // Função para mostrar erro
+        function showError(errorMessage) {
+            document.getElementById('error-message').textContent = errorMessage;
             const modal = new bootstrap.Modal(document.getElementById('errorModal'));
             modal.show();
+        }
+
+        // Função de polling
+        function pollJobStatus() {
+            fetch(`/api/job/${jobId}/status`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showError(data.error);
+                        clearInterval(pollingInterval);
+                    } else {
+                        updateProgress(data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro no polling:', error);
+                    // Não para o polling em caso de erro de rede
+                });
+        }
+
+        // Inicia o polling quando a página carrega
+        document.addEventListener('DOMContentLoaded', function() {
+            // Primeira verificação imediata
+            pollJobStatus();
+            
+            // Configura polling a cada 3 segundos
+            pollingInterval = setInterval(pollJobStatus, 3000);
+        });
+
+        // Para o polling quando a página é fechada
+        window.addEventListener('beforeunload', function() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
         });
     </script>
 </body>

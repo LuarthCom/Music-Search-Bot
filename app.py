@@ -156,6 +156,22 @@ def process_playlist(job_id, input_path, output_csv, output_xlsx, delay, max_ret
             'error': str(e)
         }, room=f"progress_{job_id}")
 
+# Nova API para polling
+@app.route('/api/job/<job_id>/status')
+def job_status(job_id):
+    if job_id not in jobs:
+        return jsonify({'error': 'Job não encontrado'}), 404
+    
+    job = jobs[job_id]
+    return jsonify({
+        'status': job['status'],
+        'progress': job['progress'],
+        'current': job['current'],
+        'total': job['total'],
+        'stats': job['stats'],
+        'last_message': job['last_message']
+    })
+
 @app.route('/progress/<job_id>')
 def progress(job_id):
     if job_id not in jobs:

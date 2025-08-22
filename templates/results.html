@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados - Music Search Bot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white text-center">
+                        <h2><i class="fas fa-check-circle"></i> Processamento Concluído!</h2>
+                        <p class="mb-0">Seus resultados estão prontos para download</p>
+                    </div>
+                    <div class="card-body">
+                        <!-- Estatísticas Finais -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h4 class="text-center mb-4">
+                                    <i class="fas fa-chart-bar"></i> Estatísticas Finais
+                                </h4>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-2">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-music fa-2x mb-2"></i>
+                                        <h4>{{ job.stats.total_songs }}</h4>
+                                        <small>Total</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-youtube fa-2x mb-2"></i>
+                                        <h4>{{ job.stats.youtube_found }}</h4>
+                                        <small>YouTube</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-link fa-2x mb-2"></i>
+                                        <h4>{{ job.stats.fourshared_found }}</h4>
+                                        <small>4shared</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-question fa-2x mb-2"></i>
+                                        <h4>{{ job.stats.not_found }}</h4>
+                                        <small>Não encontradas</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card bg-danger text-white">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                        <h4>{{ job.stats.errors }}</h4>
+                                        <small>Erros</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card bg-dark text-white">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-percentage fa-2x mb-2"></i>
+                                        <h4>
+                                            {% set found = job.stats.youtube_found + job.stats.fourshared_found %}
+                                            {% if job.stats.total_songs > 0 %}
+                                                {{ "%.0f"|format((found / job.stats.total_songs) * 100) }}%
+                                            {% else %}
+                                                0%
+                                            {% endif %}
+                                        </h4>
+                                        <small>Taxa de sucesso</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resumo Textual -->
+                        <div class="alert alert-success text-center mb-4">
+                            {% set found = job.stats.youtube_found + job.stats.fourshared_found %}
+                            <h5 class="mb-0">
+                                <i class="fas fa-trophy"></i>
+                                {{ found }} de {{ job.stats.total_songs }} músicas encontradas
+                                {% if job.stats.total_songs > 0 %}
+                                    ({{ "%.1f"|format((found / job.stats.total_songs) * 100) }}% de sucesso)
+                                {% endif %}
+                            </h5>
+                        </div>
+
+                        <!-- Botões de Download -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="d-grid">
+                                    <a href="{{ url_for('download', job_id=job_id, type='csv') }}" 
+                                       class="btn btn-success btn-lg">
+                                        <i class="fas fa-file-csv fa-2x"></i><br>
+                                        Baixar CSV
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-grid">
+                                    <a href="{{ url_for('download', job_id=job_id, type='xlsx') }}" 
+                                       class="btn btn-primary btn-lg">
+                                        <i class="fas fa-file-excel fa-2x"></i><br>
+                                        Baixar Excel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botão Nova Busca -->
+                        <div class="text-center">
+                            <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-plus"></i> Nova Busca
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informações Adicionais -->
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-info-circle"></i> Informações sobre os resultados
+                        </h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success"></i> Os arquivos contêm as colunas originais mais "Link YouTube" e "Link 4shared"</li>
+                            <li><i class="fas fa-check text-success"></i> Links vazios indicam que a música não foi encontrada na respectiva plataforma</li>
+                            <li><i class="fas fa-check text-success"></i> A coluna "Status" indica o resultado da busca (found/not_found/error)</li>
+                        </ul>
+                        
+                        <div class="alert alert-info mt-3">
+                            <small>
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Lembrete:</strong> Use os links de forma responsável, respeitando os direitos autorais 
+                                e termos de serviço das plataformas.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+</body>
+</html>
+

@@ -1,0 +1,171 @@
+/* Custom styles for Music Search Bot Web */
+
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+}
+
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.progress {
+    border-radius: 15px;
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    border-radius: 15px;
+    background: linear-gradient(45deg, #28a745, #20c997);
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.card.bg-success,
+.card.bg-primary,
+.card.bg-warning,
+.card.bg-danger,
+.card.bg-info,
+.card.bg-dark {
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.card.bg-success:hover,
+.card.bg-primary:hover,
+.card.bg-warning:hover,
+.card.bg-danger:hover,
+.card.bg-info:hover,
+.card.bg-dark:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+}
+
+.modal-header {
+    border-radius: 15px 15px 0 0;
+    border: none;
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+}
+
+/* Loading spinner personalizado */
+.fa-spin {
+    animation: fa-spin 2s infinite linear;
+}
+
+/* Melhorias visuais para cards de estatísticas */
+.card h4 {
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+.card small {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+/* Estilo para última busca */
+#last-search {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+#last-status {
+    font-size: 1.2rem;
+}
+
+/* Melhorias para botões de download */
+.btn-lg i {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+/* Cores personalizadas */
+.bg-primary {
+    background: linear-gradient(45deg, #667eea, #764ba2) !important;
+}
+
+.bg-success {
+    background: linear-gradient(45deg, #28a745, #20c997) !important;
+}
+
+.bg-info {
+    background: linear-gradient(45deg, #17a2b8, #6f42c1) !important;
+}
+
+.bg-warning {
+    background: linear-gradient(45deg, #ffc107, #fd7e14) !important;
+}
+
+.bg-danger {
+    background: linear-gradient(45deg, #dc3545, #e83e8c) !important;
+}
+
